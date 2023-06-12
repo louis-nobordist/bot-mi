@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  python3.9
+
+  Sample SAM Template for mibot
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 900
+    MemorySize: 2048
+
+Resources:
+  MibotFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      PackageType: Image
+      Architectures:
+        - x86_64
+      Events:
+        Mibot:
+          Type: Api 
+          Properties:
+            Path: /mibot1
+            Method: get
+    Metadata:
+      Dockerfile: Dockerfile
+      DockerContext: ./src
+      DockerTag: python3.9-v1
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  MibotApi:
+    Description: "API Gateway endpoint URL for Prod stage for Mibot function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/mibot1/"
+  MibotFunction:
+    Description: "Mibot Lambda Function ARN"
+    Value: !GetAtt MibotFunction.Arn
+  MibotFunctionIamRole:
+    Description: "Implicit IAM Role created for Mibot function"
+    Value: !GetAtt MibotFunctionRole.Arn
