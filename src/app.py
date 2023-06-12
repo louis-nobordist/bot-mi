@@ -23,7 +23,7 @@ def handler(event=None, context=None):
     try:
         numbers = r2.json().get("data").get("numbers")
     except:
-        print('Except 1: received status ' + r2.status_code)
+        print('Except 1: received status ' + str(r2.status_code))
     print('3. Tracking numbers received')
     chrome_options = webdriver.ChromeOptions()
     chrome_options.binary_location = "/opt/chrome/chrome"
@@ -55,7 +55,7 @@ def handler(event=None, context=None):
     response = []
     for number in numbers:
         try:
-            print('6. Started scipt for number' + number[0])
+            print('6. Started scipt for number ' + number[0])
             obj = browser.find_element(By.ID, "form-pesquisarRemessas:codigoEncomenda")
             obj.clear()
             obj.send_keys(number[0])
@@ -79,12 +79,12 @@ def handler(event=None, context=None):
             print('Except 3: unexcpeted error')
             browser.get("https://apps.correios.com.br/portalimportador/pages/pesquisarRemessaImportador/pesquisarRemessaImportador.jsf")
             time.sleep(1)
-    print('9. Processed all orders)
+    print('9. Processed all orders')
     r4 = requests.put('https://api.nobordist.com/v1/alert_logs/mi-statuses', 
     headers={'Content': 'application/json', 'Authorization': auth},
     data = {'elements': json.dumps(response)}
     )
-    print('10. Sent request, status ' + r4.status_code)
+    print('10. Sent request, status ' + str(r4.status_code))
     return {
         "statusCode": 200,
         "body": json.dumps(response)
