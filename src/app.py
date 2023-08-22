@@ -16,8 +16,7 @@ from selenium.webdriver.support.ui import Select
 def handler(event=None, context=None):
     print('1. Starting script')
     r1 = requests.post('https://api.nobordist.com/authenticate?email=ddpbot@nobordist.com&password=Acar4j3do887!', headers={'Content': 'application/json'})
-    token = r1.json().get("auth_token")
-    auth = 'Bearer ' + token
+    auth = 'Bearer ' + r1.json().get("auth_token")
     print('2. Token generated')
     r2 = requests.get('https://api.nobordist.com/v1/volumes-mi-statuses', headers={'Content': 'application/json', 'Authorization': auth})
     try:
@@ -51,22 +50,32 @@ def handler(event=None, context=None):
     WebDriverWait(browser,10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/main/div[1]/div[1]/section/div/div/form/div[2]/button"))).click()
     time.sleep(1)
     print('5. Connected with NB user')
-    #numbers = ['RV226244487UZ', 'oijjzejiojiz', 'NB030770400BR']
     response = []
     for number in numbers:
         try:
-            print('6. Started scipt for number ' + number[0])
+            print('6. Started script for number ' + number[0])
+            #WebDriverWait(browser,10).until(EC.element_to_be_clickable((By.ID, "form-pesquisarRemessas:j_idt182"))).click()
+            WebDriverWait(browser,10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div[2]/div[1]/div[2]/form/span[2]/div/div[2]/fieldset/div/input"))).click()
+            time.sleep(2)
+            print('6A. Closed popup')
             obj = browser.find_element(By.ID, "form-pesquisarRemessas:codigoEncomenda")
             obj.clear()
             obj.send_keys(number[0])
             time.sleep(0.5)
+            print ('6B. Put number')
             WebDriverWait(browser,10).until(EC.element_to_be_clickable((By.ID, "form-pesquisarRemessas:btnPesquisar"))).click()
+            print ('6C. Started search')
             time.sleep(1)
-            print('7. Started search for tracking number')
             try:
-                status = WebDriverWait(browser,10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div[2]/div[1]/div[2]/form/div[4]/table/tbody/tr[2]/td[5]"))).text
-                print('8. Found order, status ' + status)
-                response.append({'id': number[1], 'status': status})
+                lmtn = WebDriverWait(browser,10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div[2]/div[1]/div[2]/form/div[4]/table/tbody/tr[2]/td[2]"))).text
+                print(lmtn)
+                if (lmtn != number[0]):
+                    print('6D. Stopped because wrong number: ' + lmtn)
+                else: 
+                    print('7. Started search for tracking number')
+                    status = WebDriverWait(browser,10).until(EC.element_to_be_clickable((By.XPATH, "/html/body/div[2]/div[1]/div[2]/form/div[4]/table/tbody/tr[2]/td[5]"))).text
+                    print('8. Found order, status ' + status)
+                    response.append({'id': number[1], 'status': status})
             except:
                 print('Except 2: because of CPF')
                 inserirCPF = browser.find_element(By.XPATH, "/html/body/div[2]/div[1]/div[2]/form/fieldset/span/label[2]/input")
@@ -75,18 +84,21 @@ def handler(event=None, context=None):
                 salvar = browser.find_element(By.ID, "form-autodeclaracao:btnSalvar").click()
                 print ('Except 2: passed CPF')
                 browser.get("https://apps.correios.com.br/portalimportador/pages/pesquisarRemessaImportador/pesquisarRemessaImportador.jsf")
-        except:
-            print('Except 3: unexcpeted error')
+        except Exception as error:
+            print("Except 3: unexpected error: ", error)
             browser.get("https://apps.correios.com.br/portalimportador/pages/pesquisarRemessaImportador/pesquisarRemessaImportador.jsf")
             time.sleep(1)
     print('9. Processed all orders')
-    r4 = requests.put('https://api.nobordist.com/v1/alert_logs/mi-statuses', 
+    print(response)
+    r3 = requests.put('https://api.nobordist.com/v1/alert_logs/mi-statuses', 
     headers={'Content': 'application/json', 'Authorization': auth},
     data = {'elements': json.dumps(response)}
     )
-    print('10. Sent request, status ' + str(r4.status_code))
+    print('10. Sent request, status ' + str(r3.status_code))
     return {
         "statusCode": 200,
         "body": json.dumps(response)
     }
     browser.quit()
+
+
